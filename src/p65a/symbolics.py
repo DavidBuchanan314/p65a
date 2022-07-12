@@ -11,13 +11,6 @@ class Expression(ABC):
 			return value
 		return Literal(value)
 
-	# sugar for getting address of hi and lo bytes of a 16-bit pointer
-	def hi(self):
-		return self + 1
-	
-	def lo(self):
-		return self
-
 	def __mul__(self, other):
 		return BinaryOp(operator.mul, self, other)
 

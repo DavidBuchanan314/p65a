@@ -1,6 +1,10 @@
 import sys
 sys.path.append("../src/") # jank to allow running in-tree
 
+"""
+This is a serial bootloader program for my 6502 SBC
+"""
+
 from p65a import *
 import crcmod
 crc16 = crcmod.predefined.mkCrcFun("xmodem")
@@ -11,7 +15,11 @@ UART_DATA = Literal(0xa001, type=Addr)
 program = [
 	Org(0x0000),
 	zp.crc,
-		Dw(0),
+	zp.crc_lo,
+		Db(0),
+	zp.crc_hi,
+		Db(0),
+
 	zp.cmd,
 		Db(0),
 	zp.cmdlen,
@@ -64,19 +72,19 @@ program = [
 		RTS(),
 
 	# TODO: alignment
-	lbl.CRCHI,
+	lbl.CRC_LUT_HI,
 		Db([crc16(bytes([i])) >> 8 for i in range(0x100)]),
-	lbl.CRCLO,
+	lbl.CRC_LUT_LO,
 		Db([crc16(bytes([i])) & 0xff for i in range(0x100)]),
 
 	lbl.crc_update, # input: A, clobbers: A, Y
-		A <= A ^ zp.crc.hi(),
+		A <= A ^ zp.crc_hi,
 		Y <= A,
-		A <= zp.crc.lo(),
-		A <= A  ^ lbl.CRCHI[Y],
-		zp.crc.hi() <= A,
-		A <= lbl.CRCLO[Y],
-		zp.crc.lo() <= A,
+		A <= zp.crc_lo,
+		A <= A  ^ lbl.CRC_LUT_HI[Y],
+		zp.crc_hi <= A,
+		A <= lbl.CRC_LUT_LO[Y],
+		zp.crc_lo <= A,
 		RTS(),
 
 
@@ -100,8 +108,8 @@ program = [
 
 		# zero the crc accumulator
 		A <= 0,
-		zp.crc.lo() <= A,
-		zp.crc.hi() <= A,
+		zp.crc_lo <= A,
+		zp.crc_hi <= A,
 
 		# note: timing is pretty tight in this loop,
 		# we have ~160 cycles for each iteration before the receive buffer would
@@ -120,10 +128,10 @@ program = [
 
 	lbl.recvloopdone,
 		lbl.getchar(), # crc
-		A == zp.crc.lo(),
+		A == zp.crc_lo,
 		BNE(lbl.badcrclo),
 		lbl.getchar(),
-		A == zp.crc.hi(),
+		A == zp.crc_hi,
 		BNE(lbl.badcrchi),
 
 		# note: command handlers are responsible for ack'ing
@@ -160,8 +168,8 @@ program = [
 
 		# zero the crc accumulator
 		A <= 0,
-		zp.crc.lo() <= A,
-		zp.crc.hi() <= A,
+		zp.crc_lo <= A,
+		zp.crc_hi <= A,
 
 		A <= 0x00, # ack
 		lbl.putchar(),
@@ -181,9 +189,9 @@ program = [
 		# fallthru
 
 	lbl.writedone,
-		A <= zp.crc.lo(),
+		A <= zp.crc_lo,
 		lbl.putchar(),
-		A <= zp.crc.hi(),
+		A <= zp.crc_hi,
 		lbl.putchar(),
 
 		JMP(lbl.recv_cmd_loop),
