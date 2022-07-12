@@ -38,5 +38,7 @@ and then the machine code can finally be finally emitted.
 
 ## TODO
 
+- Make an installable package
+- Put it on pypi
 - Refactor - there's a lot of code in places it shouldn't be
 - Documentation
