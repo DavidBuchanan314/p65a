@@ -1,0 +1,28 @@
+[build-system]
+requires = ["flit_core>=3.2"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "p65a"
+version = "0.0.1"
+authors = [
+	{ name="David Buchanan", email="d@vidbuchanan.co.uk" },
+]
+description = "Pythonic 6502 Assembler: An experimental alternative to traditional assemblers."
+readme = "README.md"
+license = { file="LICENSE" }
+requires-python = ">=3.10"
+classifiers = [
+	"Programming Language :: Python :: 3",
+	"License :: OSI Approved :: MIT License",
+	"Operating System :: OS Independent",
+	"Development Status :: 3 - Alpha",
+	"Intended Audience :: Developers",
+	"Natural Language :: English",
+	"Topic :: Software Development :: Assemblers",
+	"Topic :: Software Development :: Code Generators",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/DavidBuchanan314/p65a"
+"Bug Tracker" = "https://github.com/DavidBuchanan314/p65a/issues"
